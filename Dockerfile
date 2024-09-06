@@ -9,11 +9,11 @@ RUN mkdir -p /srv/samba/shared && chmod 0777 /srv/samba/shared
 
 COPY smb.conf /etc/samba/smb.conf
 
-COPY allow_samaba_thru_firewall.sh /usr/local/bin/allow_samaba_thru_firewall.sh
+COPY allow_samba_thru_firewall.sh /usr/local/bin/allow_samba_thru_firewall.sh
 
-RUN chmod +rwx /usr/local/bin/allow_samaba_thru_firewall.sh
+RUN chmod +rwx /usr/local/bin/allow_samba_thru_firewall.sh
 
 EXPOSE 137/udp 138/udp 139/tcp 445/tcp
 
 
-CMD ["/bin/bash", "-c", "/usr/local/bin/allow_samaba_thru_firewall.sh && smbd -F --no-process-group"]
+CMD ["/bin/bash", "-c", "/usr/local/bin/allow_samba_thru_firewall.sh && smbd -F --no-process-group"]
