@@ -1,7 +1,7 @@
 FROM ubuntu:20.04
 
 
-RUN apt-get update && apt-get install -y samba && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && apt-get install -y samba ufw && rm -rf /var/lib/apt/lists/* 
 
 
 RUN mkdir -p /srv/samba/shared && chmod 0777 /srv/samba/shared
