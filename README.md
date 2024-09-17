@@ -8,6 +8,12 @@ For linux systems: Simply run the script in User_scripts to get your host Ip add
 
 Create a folder in this directory structure : /home/{your_root_home_folder}/shared. You can change this directory and name to your liking but this would mean you have to change the shared volume in docker container. To keep it simple, try to create a folder as instructed above.
 
+## HOW TO RUN!
+cd to the directory where the repo is downloaded and run the command:
+
+```yaml
+   - docker-compose up -d
+
 ## Linux Systems
 
 1. **Run the Script**  
