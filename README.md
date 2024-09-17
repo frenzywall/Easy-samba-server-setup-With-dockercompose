@@ -28,6 +28,9 @@ Create a folder in this directory structure : /home/{your_root_home_folder}/shar
    In your `docker-compose.yml` file, modify the following line:  
    ```yaml
    - /home/frenzy/shared:/srv/samba/shared
+   to: 
+   - c:/shared:/srv/samba/shared
+   
 # Samba Server Access Guide
 
 ## Connecting to Samba Server
