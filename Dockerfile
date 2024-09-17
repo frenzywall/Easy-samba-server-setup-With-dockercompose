@@ -4,7 +4,7 @@ FROM ubuntu:20.04
 RUN apt-get update && apt-get install -y samba && rm -rf /var/lib/apt/lists/*
 
 
-RUN mkdir -p /srv/samba/shared && sudo chmod -R 0777 /srv/samba/shared
+RUN mkdir -p /srv/samba/shared && chmod -R 0777 /srv/samba/shared
 
 
 
