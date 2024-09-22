@@ -1,4 +1,5 @@
 # Samba Server Setup and Access Guide
+![alt text](<Screenshot from 2024-09-22 10-06-02.png>)
 
 ## Overview
 
