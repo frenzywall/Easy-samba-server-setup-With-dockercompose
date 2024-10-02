@@ -21,7 +21,6 @@ cd to your downloaded repo and run: `docker-compose up -d`.
 2. **Create a Shared Folder**  
    Create a folder with the following directory structure:  
    `/home/{your_root_home_folder}/shared`  
-   You can change the directory and name to your liking, but this will require updating the shared volume path in the Docker container. For simplicity, create the folder as instructed above.
 
 ## Windows Users
 
@@ -46,9 +45,9 @@ Follow these steps based on the operating system you are using to connect to you
 
 1. Open File Explorer.
 2. In the address bar, type:  
-   `\\<Samba-server-IP-address>\Shared`  
+   `\\<Samba-server-IP-address>\shared`  
    For example:  
-   `\\192.168.1.100\Shared`
+   `\\192.168.1.100\shared`
 3. Press Enter.
 4. Enter the following credentials:
    - **Username:** guest
@@ -59,9 +58,9 @@ Follow these steps based on the operating system you are using to connect to you
 
 1. Open File Manager (e.g., Nautilus).
 2. In the location bar, type:  
-   `smb://<Samba-server-IP-address>/Shared`  
+   `smb://<Samba-server-IP-address>/shared`  
    For example:  
-   `smb://192.168.1.100/Shared`
+   `smb://192.168.1.100/shared`
 3. Press Enter.
 4. Provide the following credentials:
    - **Username:** guest
@@ -73,7 +72,7 @@ Follow these steps based on the operating system you are using to connect to you
 1. Open a file manager app like CX File Explorer.
 2. Go to the Network tab and add a new SMB connection.
 3. In the Host field, enter:  
-   `smb://<Samba-server-IP-address>/Shared`  
+   `smb://<Samba-server-IP-address>/shared`  
    Example:  
    `smb://192.168.1.100/Shared`
 4. Enter the following details:
@@ -86,9 +85,9 @@ Follow these steps based on the operating system you are using to connect to you
 1. Open Finder.
 2. Press `Cmd + K` to open the "Connect to Server" window.
 3. Type:  
-   `smb://<Samba-server-IP-address>/Shared`  
+   `smb://<Samba-server-IP-address>/shared`  
    For example:  
-   `smb://192.168.1.100/Shared`
+   `smb://192.168.1.100/shared`
 4. Click Connect.
 5. Enter the following credentials:
    - **Username:** guest
