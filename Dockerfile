@@ -1,18 +1,26 @@
-FROM ubuntu:latest
+FROM alpine:latest
 
-RUN apt-get update && apt-get install -y locales && rm -rf /var/lib/apt/lists/* \
-    && localedef -i en_US -c -f UTF-8 -A /usr/share/locale/locale.alias en_US.UTF-8
-ENV LANG en_US.utf8
+# Install Samba, user management utilities, tini (init signal handler), and dos2unix
+RUN apk add --no-cache samba shadow tini dos2unix
 
-RUN apt-get update && apt-get install -y samba && rm -rf /var/lib/apt/lists/*
+# Prepare shared directory
+RUN mkdir -p /srv/samba/shared && \
+    chmod -R 0777 /srv/samba/shared
 
-RUN mkdir -p /srv/samba/shared
-
-RUN chown -R nobody:nogroup /srv/samba && \
-    chmod -R 777 /srv/samba
-
+# Copy configuration and entrypoint
 COPY smb.conf /etc/samba/smb.conf
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN dos2unix /usr/local/bin/entrypoint.sh /etc/samba/smb.conf && \
+    chmod +x /usr/local/bin/entrypoint.sh
 
-EXPOSE 137/udp 138/udp 139/tcp 445/tcp
+# SMB Ports:
+# 445: Direct SMB (SMB2/SMB3 - Primary modern port)
+# 139: SMB over NetBIOS
+EXPOSE 445 139
 
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=5s --retries=3 \
+    CMD smbcontrol smbd ping || exit 1
+
+ENTRYPOINT ["/sbin/tini", "--", "/usr/local/bin/entrypoint.sh"]
 CMD ["smbd", "-F", "--no-process-group"]

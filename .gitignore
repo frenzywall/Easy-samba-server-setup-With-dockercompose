@@ -1,0 +1,10 @@
+# Local shared files
+shared/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log

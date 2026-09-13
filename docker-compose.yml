@@ -1,13 +1,27 @@
-version: '3'
 services:
   samba:
+    image: frenzywall/samba-server:latest
     build: .
     container_name: samba-server
+    restart: unless-stopped
     ports:
-      - "137:137/udp"
-      - "138:138/udp"
-      - "139:139/tcp"
-      - "445:445/tcp"
+      - "${SMB_PORT:-445}:445"
+      - "${NETBIOS_PORT:-139}:139"
+    environment:
+      - SAMBA_SHARE_NAME=${SAMBA_SHARE_NAME:-Shared}
+      - SAMBA_USER=${SAMBA_USER:-sambauser}
+      - SAMBA_PASSWORD=${SAMBA_PASSWORD:-samba123}
+      - SAMBA_READ_ONLY=${SAMBA_READ_ONLY:-no}
+      - SAMBA_GUEST_OK=${SAMBA_GUEST_OK:-yes}
     volumes:
-      - /home/frenzy/shared:/srv/samba/shared
-    restart: always
+      - samba_data:/srv/samba/shared
+    healthcheck:
+      test: ["CMD-SHELL", "smbcontrol smbd ping || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 5s
+
+volumes:
+  samba_data:
+    name: samba_data

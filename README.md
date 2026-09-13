@@ -1,101 +1,148 @@
-# Samba Server Setup and Access Guide
-![alt text](<Screenshot from 2024-09-22 10-06-02.png>)
+# Easy Samba Server with Docker Compose
 
-## Overview
+[![Docker](https://img.shields.io/badge/Docker-20+-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
+[![Samba](https://img.shields.io/badge/Samba-4.x-FF6600?logo=samba&logoColor=white)](https://www.samba.org/)
+[![Alpine Linux](https://img.shields.io/badge/Alpine-3.20-0D597F?logo=alpinelinux&logoColor=white)](https://alpinelinux.org/)
+[![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20macOS%20%7C%20Linux%20%7C%20NAS-brightgreen)]()
 
-How to use!
+A lightweight, enterprise-grade, **100% host-agnostic** Samba (SMB) server powered by Docker Compose.
 
-For linux systems: Simply run the script in User_scripts to get your host Ip address.
+Runs identically across **Windows**, **macOS**, **Linux**, and NAS platforms (TrueNAS, Unraid, Synology) without requiring any host scripts, language runtimes, or OS-specific dependencies.
 
-Create a folder in this directory structure : /home/{your_root_home_folder}/shared. You can change this directory and name to your liking but this would mean you have to change the shared volume in docker container. To keep it simple, try to create a folder as instructed above.
+---
 
-## How to run!
+## 🏗️ Architecture
 
-cd to your downloaded repo and run: `docker-compose up -d`.
+```mermaid
+graph TD
+    Client["Client Devices (Windows, Mac, Linux, iOS/Android)"]
+    Port["Port 445 (Direct SMB)"]
+    Container["Samba Container (Alpine Linux)"]
+    VFS["Apple Fruit VFS + SMB2/3 Engine"]
+    Storage["Mounted Host Storage (DATA_DIR)"]
 
-## Linux Systems
+    Client -->|SMB2 / SMB3 Protocol| Port
+    Port --> Container
+    Container --> VFS
+    VFS --> Storage
+```
 
-1. **Run the Script**  
-   Execute the script located in `User_scripts` to obtain your host IP address.
+---
 
-2. **Create a Shared Folder**  
-   Create a folder with the following directory structure:  
-   `/home/{your_root_home_folder}/shared`  
+## 🚀 Quick Start (Zero Configuration)
 
-## Windows Users
+Start the stack with a single command:
 
-1. **Create a Shared Folder**  
-   Create a folder in a directory you want to sync. For example:  
-   `c:/shared`
+```bash
+docker compose up -d
+```
 
-2. **Update Docker Compose File**  
-   In your `docker-compose.yml` file, modify the following line:  
-   ```yaml
-   - /home/frenzy/shared:/srv/samba/shared
-   to: 
-   - c:/shared:/srv/samba/shared
-   
-# Samba Server Access Guide
+- **Shared folder:** Automatically created at `./shared`
+- **Network Share Name:** `Shared`
+- **Default Credentials:** `sambauser` / `samba123`
+- **Guest Access:** Enabled by default for frictionless home/media device streaming
 
-## Connecting to Samba Server
+To view the live connection diagnostics and server status:
+```bash
+docker compose logs -f
+```
 
-Follow these steps based on the operating system you are using to connect to your Samba server:
+---
 
-### Connect to Samba from Windows
+## ⚙️ Configuration (12-Factor / `.env`)
 
-1. Open File Explorer.
-2. In the address bar, type:  
-   `\\<Samba-server-IP-address>\shared`  
-   For example:  
-   `\\192.168.1.100\shared`
-3. Press Enter.
-4. Enter the following credentials:
-   - **Username:** guest
-   - **Password:** Leave it blank (if configured to allow guest access with no password).
-5. You should now be able to access the shared folder.
+To customize paths, credentials, or access policies without touching code, create a `.env` file (or copy `.env.example`):
 
-### Connect to Samba from Linux
+```bash
+cp .env.example .env
+```
 
-1. Open File Manager (e.g., Nautilus).
-2. In the location bar, type:  
-   `smb://<Samba-server-IP-address>/shared`  
-   For example:  
-   `smb://192.168.1.100/shared`
-3. Press Enter.
-4. Provide the following credentials:
-   - **Username:** guest
-   - **Password:** Leave it blank (for guest access).
-5. The shared folder should now be accessible.
+| Environment Variable | Default | Description |
+| :--- | :--- | :--- |
+| `DATA_DIR` | `./shared` | Host path to share (e.g. `./shared`, `C:/Media`, or `/mnt/data`) |
+| `SAMBA_SHARE_NAME` | `Shared` | Network share name exposed to SMB clients |
+| `SAMBA_USER` | `sambauser` | Samba username for authenticated access |
+| `SAMBA_PASSWORD` | `samba123` | Password for user account (set for Windows 11 / macOS) |
+| `SAMBA_GUEST_OK` | `yes` | Set to `no` to disable unauthenticated guest access |
+| `SAMBA_READ_ONLY` | `no` | Set to `yes` to enforce read-only access |
+| `PUID` / `PGID` | `1000` / `1000` | User and Group ID mapping (matches host permissions) |
+| `SMB_PORT` | `445` | Direct SMB port |
 
-### Connect to Samba from Android
+---
 
-1. Open a file manager app like CX File Explorer.
-2. Go to the Network tab and add a new SMB connection.
-3. In the Host field, enter:  
-   `smb://<Samba-server-IP-address>/shared`  
-   Example:  
-   `smb://192.168.1.100/Shared`
-4. Enter the following details:
-   - **Username:** guest
-   - **Password:** Leave it blank (if using guest access).
-5. You should be able to access the shared folder.
+## 📂 Connecting from Your Devices
 
-### Connect to Samba from macOS
+Find your host's local IP address (e.g., `192.168.1.100`):
 
-1. Open Finder.
-2. Press `Cmd + K` to open the "Connect to Server" window.
-3. Type:  
-   `smb://<Samba-server-IP-address>/shared`  
-   For example:  
-   `smb://192.168.1.100/shared`
-4. Click Connect.
-5. Enter the following credentials:
-   - **Username:** guest
-   - **Password:** Leave it blank (for guest access).
-6. The Samba share should now be mounted.
+### 🪟 Windows (10 & 11)
+1. Press `Win + R` or open **File Explorer**.
+2. In the address bar, type:
+   ```text
+   \\<HOST_IP>\Shared
+   ```
+3. Enter credentials:
+   - **User:** `sambauser`
+   - **Password:** `samba123`  
+   *(Or connect as Guest if enabled)*
 
-## Note!
+> **Why authenticated credentials matter:** Modern Windows 10/11 Enterprise & Pro editions block unauthenticated guest logins by group policy (`AllowInsecureGuestAuth=0`). Providing `sambauser`/`samba123` ensures seamless out-of-the-box connectivity.
 
-- **IP Address:** Replace `<Samba-server-IP-address>` with the host machine's IP address where the Samba server is running. You can find this IP using `ifconfig` or `ip addr` commands on Linux or your Docker host.
-- **Folder Name:** The share is named `Shared`, so use this share name in the connection URL.
-- If the `nmbd` service is running, Windows devices might automatically discover the Samba server in the network section.
+---
+
+### 🍎 macOS
+1. Open **Finder**.
+2. Press `Cmd + K` (**Connect to Server**).
+3. Enter:
+   ```text
+   smb://<HOST_IP>/Shared
+   ```
+4. Click **Connect** and select **Registered User** (`sambauser` / `samba123`) or **Guest**.
+
+> **Apple Performance**: Equipped with Apple `fruit` VFS modules (`catia`, `fruit`, `streams_xattr`) to prevent `.DS_Store` lockups, accelerate Finder browsing, and support Time Machine metadata.
+
+---
+
+### 🐧 Linux & Home Servers
+Open your file manager (Nautilus, Dolphin, Nemo) and type:
+```text
+smb://<HOST_IP>/Shared
+```
+
+Or mount via CLI:
+```bash
+sudo mount -t cifs //<HOST_IP>/Shared /mnt/samba -o username=sambauser,password=samba123
+```
+
+---
+
+### 📱 Android & iOS
+In apps like **CX File Explorer**, **Solid Explorer**, or the iOS **Files** app:
+- Add a new **SMB / Windows Share** connection.
+- Host: `<HOST_IP>`
+- Share: `Shared`
+- Authentication: `sambauser` / `samba123` (or Anonymous / Guest).
+
+---
+
+## 🛠️ Management & Lifecycle
+
+- **Start server in background:**
+  ```bash
+  docker compose up -d
+  ```
+- **Stop server:**
+  ```bash
+  docker compose down
+  ```
+- **Rebuild image:**
+  ```bash
+  docker compose up -d --build
+  ```
+- **Check container health:**
+  ```bash
+  docker compose ps
+  ```
+- **Inspect live logs & connection banner:**
+  ```bash
+  docker compose logs -f
+  ```

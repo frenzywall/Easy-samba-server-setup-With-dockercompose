@@ -1,0 +1,8 @@
+.git
+.github
+shared/
+*.log
+*.md
+.DS_Store
+Thumbs.db
+User_scripts/
