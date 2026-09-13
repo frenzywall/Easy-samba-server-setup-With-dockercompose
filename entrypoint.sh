@@ -1,4 +1,4 @@
-﻿#!/bin/sh
+#!/bin/sh
 set -e
 
 # Configuration defaults
@@ -9,6 +9,8 @@ READ_ONLY="${SAMBA_READ_ONLY:-no}"
 GUEST_OK="${SAMBA_GUEST_OK:-yes}"
 PUID="${PUID:-1000}"
 PGID="${PGID:-1000}"
+HOST_IP="${HOST_IP:-}"
+SMB_PORT="${SMB_PORT:-445}"
 
 # 1. User & Group Management (PUID / PGID pattern)
 if ! getent group "$PGID" >/dev/null 2>&1; then
@@ -52,23 +54,51 @@ mkdir -p /srv/samba/shared
 chown -R "$PUID:$PGID" /srv/samba/shared 2>/dev/null || true
 chmod 0777 /srv/samba/shared
 
-# 5. Output professional startup banner to container logs
+# 5. Automated IP & Port Detection
+if [ -z "$HOST_IP" ]; then
+    RESOLVED_HOST=$(getent ahostsv4 host.docker.internal 2>/dev/null | awk '{print $1; exit}')
+    DEFAULT_ROUTE=$(ip -4 route get 1.1.1.1 2>/dev/null | awk '{print $7; exit}')
+
+    if [ -n "$RESOLVED_HOST" ] && [ "$RESOLVED_HOST" != "127.0.0.1" ]; then
+        LAN_IP="$RESOLVED_HOST"
+    elif [ -n "$DEFAULT_ROUTE" ] && ! echo "$DEFAULT_ROUTE" | grep -q '^172\.'; then
+        LAN_IP="$DEFAULT_ROUTE"
+    else
+        LAN_IP="<YOUR_HOST_IP>"
+    fi
+else
+    LAN_IP="$HOST_IP"
+fi
+
+PORT_ARG=""
+WIN_PORT=""
+if [ -n "$SMB_PORT" ] && [ "$SMB_PORT" != "445" ]; then
+    PORT_ARG=":$SMB_PORT"
+    WIN_PORT=",$SMB_PORT"
+fi
+
+# 6. Output professional startup banner to container logs
 cat <<EOF
 ======================================================================
-  ðŸš€ Easy Samba Server (Professional Grade)
+  >> Easy Samba Server (Professional Grade)
 ======================================================================
   Share Name     : ${SHARE_NAME}
   User Account   : ${USER_NAME}
   Guest Access   : $([ "$GUEST_OK" = "yes" ] && echo "Enabled" || echo "Disabled")
   Read Only      : $([ "$READ_ONLY" = "yes" ] && echo "Yes" || echo "No")
-  UID / GID      : ${PUID}:${PGID}
   Protocols      : SMB2 & SMB3 (SMB1 disabled for security)
-  macOS VFS      : Apple Fruit + Catia + Streams_Xattr (Active)
+  Port           : ${SMB_PORT}
 ----------------------------------------------------------------------
   Ready for connections!
-  Windows Explorer   : \\\\<YOUR_HOST_IP>\\${SHARE_NAME}
-  macOS Finder       : smb://<YOUR_HOST_IP>/${SHARE_NAME}
-  Linux / Mobile     : smb://<YOUR_HOST_IP>/${SHARE_NAME}
+
+  • From this computer (Localhost):
+    Windows Explorer   : \\\\localhost${WIN_PORT}\\${SHARE_NAME}
+    macOS / Linux      : smb://localhost${PORT_ARG}/${SHARE_NAME}
+
+  • From other devices on your LAN:
+    Windows Explorer   : \\\\${LAN_IP}${WIN_PORT}\\${SHARE_NAME}
+    macOS Finder       : smb://${LAN_IP}${PORT_ARG}/${SHARE_NAME}
+    Linux / Mobile     : smb://${LAN_IP}${PORT_ARG}/${SHARE_NAME}
 ======================================================================
 EOF
 
